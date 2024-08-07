@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en-us">
+<head>
+    <!-- Page configuration. -->
+    <meta charset="utf-8" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta viewport width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes />
+    <title></title>
+    <link rel="shortcut icon" href="img/favicon.ico">
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="manifest" href="json/manifest.webmanifest">
+    <!-- Application base modules. -->
+    <script type="text/javascript" src="./Web Audio Plugin/howler.min.js"></script>
+    <script type="text/javascript" src="./Web Audio Plugin/WebAudio.js"></script>
+    <script type="text/javascript" src="./Web Storage/database.js"></script>
+
+    <script type="text/javascript" src="lib/runtimeData.js"></script>
+    <script type="text/javascript">
+        window.onload = () => {
+            document.title = runtimeData.productName;
+            if (runtimeData.debugMode == true) {
+                let erudaScript = document.createElement("script");
+                erudaScript.src = "lib/eruda.js";
+                erudaScript.onload = () => {
+                    eruda.init();
+                };
+                document.body.appendChild(erudaScript);
+            }
+        }
+    </script>
+</head>
+<body>
+    <!-- Game canvas. -->
+    <div id="unity-container">
+        <canvas id="unity-canvas" tabindex="-1"></canvas>
+        <div id="unity-loading-bar">
+            <div id="version-container">
+                <img src="img/version_product_32.png" />
+                <div id="version-product">1.0.0</div>
+                <div id="version-separator"></div>
+                <img src="img/version_sdk_32.png" />
+                <div id="version-sdk">1.0.0</div>
+            </div>
+            <div id="unity-logo"></div>
+            <div id="unity-progress-bar-empty">
+                <div id="unity-progress-bar-full"></div>
+            </div>
+            <div id="three-canvas"></div>
+        </div>
+    </div>
+    <!-- Version labels. -->
+    <script type="text/javascript">
+        document.getElementById("version-product").innerHTML = runtimeData.productVersion;
+        document.getElementById("version-sdk").innerHTML = runtimeData.sdkVersion;
+    </script>
+    <!-- MirraGames animation. -->
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "./lib/threeModule.js",
+                "three/addons/": "./lib/"
+            }
+        }
+    </script>
+    <script type="module" src="lib/threeCanvas.js"></script>
+    <!-- Service worker. -->
+    <script type="text/javascript">
+        window.addEventListener("load", function () {
+            if ("serviceWorker" in navigator) {
+                navigator.serviceWorker.register("lib/serviceWorker.js");
+            }
+        });
+
+        //const canvas = document.querySelector("#unity-canvas");
+
+        var sizeCanvas = 1280;
+
+        window.setCanvasSize = function(width){
+            sizeCanvas = width;
+
+            //var aspect = canvas.clientWidth / canvas.clientHeight;
+
+            //canvas.width = sizeCanvas;
+            //canvas.height = sizeCanvas / aspect;
+        };
+
+        window.UpdateCanvasSize = function(){
+            setCanvasSize(sizeCanvas);
+        };
+
+        window.addEventListener("resize", function(){
+            UpdateCanvasSize();
+            console.log("on window resize");
+        });
+    </script>
+    <!-- Memory diagnostics. -->
+    <link rel="stylesheet" href="css/diagnostics.css">
+    <script src="lib/diagnostics.js"></script>
+    <script type="text/javascript">
+        let diagnosticsIcon = document.createElement('img');
+        diagnosticsIcon.id = 'diagnostics-icon';
+        diagnosticsIcon.src = 'img/diagnostics_128x128.png';
+        diagnosticsIcon.style.display = "none";
+        document.body.appendChild(diagnosticsIcon);
+    </script>
+    <!-- Application interface. -->
+    <script type="text/javascript" src="lib/application.js"></script>
+    <script type="text/javascript" src="lib/aspectRatio.js"></script>
+    <script type="text/javascript" src="lib/commonFixes.js"></script>
+    <script type="text/javascript">
+        async function initializeWrapper() {
+            if (runtimeData.wrapperScript == "") {
+                console.error("Wrapper script is not valid.");
+                application.initialize();
+                return;
+            }
+            const wrapper = await import("./lib/" + runtimeData.wrapperScript);
+            if (typeof wrapper.initialize === 'function') {
+                // Wrapper initialization.
+                wrapper.initialize(() => {
+                    // Application initialization
+                    // on wrapper ready callback.
+                    application.initialize();
+                });
+            } else {
+                console.error("Initialize method not found in the module.");
+                application.initialize();
+            }
+        }
+        initializeWrapper();
+    </script>
+</body>
+</html>
